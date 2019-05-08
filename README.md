@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../master/Logo/MIMESiS_Logo.png" width="350" title="hover text">
+  <img src="../master/Logo/MIMESiS_Logo.png" width="350" title="MIMESiS Logo :)">
 </p>
 
 # MIMESiS Project
