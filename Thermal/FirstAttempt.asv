@@ -104,7 +104,7 @@ sim(model)
 
 %% Plot Enceladus VS Earth hot situation
 
-figure ('Name','Transient of Temperature in Enceladus cold steady state case')
+figure ('Name','Transient of Temperature in Enceladus hot steady state case')
         
         legend();hold on
         plot(Thot_enc ,'LineWidth',2,'DisplayName','T transient for Enceladus hot case')
@@ -122,10 +122,7 @@ Qasat=0;
 QS_e = 0;
 Qa_e = 0;
 
-model = 'FirstAttempt_ColdEarth.slx';
-load_system(model)
-sim(model)
-model = 'FirstAttempt_ColdEnceladus.slx';
+model = 'FirstAttempt_Cold.slx';
 load_system(model)
 sim(model)
 
