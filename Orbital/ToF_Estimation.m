@@ -28,14 +28,16 @@
 %   - set the discretization paramters for the analysis
 % -------------------------------------------------------------------------
 % Author: Cirelli Renato
-% Date: 06/05/2019
-% Revision: 3
+% Date: 18/05/2019
+% Revision: 4
 %
 % ChangeLog
 % 23/04/2019 - First Version of the file
 % 28/04/2019 - Added the spherical cap computation and the nadir-target
 %              visibility
 % 06/05/2019 - Fixed the LaTex text, added the velocity magnitude plot 
+% 18/05/2019 - Added the IGFOV and SWATH profile on a generic descening
+%              transfer orbit
 %
 % -------------------------------------------------------------------------
 % LICENSED UNDER Creative Commons Attribution-ShareAlike 4.0 International
@@ -63,33 +65,30 @@ enceladus = enceladusData();
 % PARAMETERS
 
 % Altitude of detachment
-h_SC = 200; % [km]
+h_SC = 220; % [km]
 
 % Target spherical cap surface
 coverA = 100; %[m^2]
 
 % Target initial longituted
-target_long = deg2rad(180+90); % [rad]
+target_long = deg2rad(180+45); % [rad]
 
 % Visibility angles for the SC2C and C2T
 SC2C_minAngle = 0; %[°]
 C2T_minAngle = 0; %[°]
 
-% Optical Resolution data
-
-
 % Pericenter of the descending trajectory discretization
-periStep = 3;
+periStep = 15;
 periI = 1*enceladus.radius;
 periF = 0.001*enceladus.radius;
 
 % Time discretization step size
-timeStep = 10; %[s]
+timeStep = 30; %[s]
 
 % -------------------------------------------------------------------------
 % Figure Initialization
 % -------------------------------------------------------------------------
-initNewFigure('Moon Centred Intertial Reference Frame');
+myFrameHandler = initNewFigure('Moon Centred Intertial Reference Frame');
 handler_axes_MCIRF = axes;
 axis(1.2*(enceladus.radius+h_SC).*[-1 1 -1 1 -1 1]);
 title('Moon Centred Intertial Reference Frame');
@@ -141,8 +140,28 @@ title('Velocity Magnitude');
 xlabel('$Descent \; Time \;[s]$');
 ylabel('$\|\underline{V}\| \;[m/s]$')
 hold on;
-% -------------------------------------------------------------------------
 
+initNewFigure('Velocity Magnitude');
+handler_axes_7 = axes;
+title('Velocity during the descent');
+xlabel('$Local \; Altitude \;[km]$');
+ylabel('$\|\underline{V}\| \;[m/s]$')
+hold on;
+
+initNewFigure('IGFOV');
+handler_axes_8 = axes;
+title('IGFOV');
+xlabel('$Descent \; Time \;[s]$');
+ylabel('$IGFOV \;[m]$')
+hold on;
+
+initNewFigure('Swath');
+handler_axes_9 = axes;
+title('Swath');
+xlabel('$Descent \; Time \;[s]$');
+ylabel('$Swath \;[m]$')
+hold on;
+% -------------------------------------------------------------------------
 % SC orbit definition
 SC_kepVect_I = [enceladus.radius+h_SC,0,0,0,0,pi];
 plotOrbitGeo(handler_axes_MCIRF,SC_kepVect_I,[0,2*pi],'b');
@@ -156,6 +175,11 @@ SC_timeAtDetach =  theta2time(SC_kepVect_I,pi,enceladus.GM);
 % Spherical Cap angle over the surfae of the moon to achieve coverA m^2 of
 % surface
 spherCapAngle = acos(1-coverA/(2*pi*enceladus.radius^2));
+
+% Adapted Optic
+%myAdaptedOptic [checkLimit,EFL,rad2deg(IFOV),rad2deg(FOV),D_aperture,IGFOV_noadapt,swath_noadapt]
+pixelSize = [9e-6,9e-6];
+myAdaptedOptic = adaptOptic(220000,pixelSize,30,8000,1.4);
 
 % Pericenter Distance To Test
 r_peri_test = linspace(periI,periF,periStep);
@@ -206,6 +230,9 @@ for k = 1:length(r_peri_test)
     % 8     deltaX at full coverage
     % 9     Velocity Magnitude
     myCollector = zeros(length(time_test),7);
+    IGFOV_noadapt = zeros(length(time_test),1);
+    swath_noadapt = zeros(length(time_test),1);
+    
     for ii = 1:length(time_test)
         
         
@@ -279,9 +306,24 @@ for k = 1:length(r_peri_test)
             myCollector(ii,6) = 0;
         end
         
-        %pause(0.01);
+         pause(0.01);
+         %drawnow
+%         myFrame = getframe(myFrameHandler);
+%         myImage = frame2im(myFrame);
+%         [imind,cm] = rgb2ind(myImage,256);
+%         if ii == 1
+%             imwrite(imind,cm,['myAnim_',num2str(k),'.gif'],'gif','Loopcount',inf,'DelayTime',0.1);
+%         else
+%             imwrite(imind,cm,['myAnim_',num2str(k),'.gif'],'gif','WriteMode','append','DelayTime',0.1);
+%         end
+        
+        % Observed Scene
+        % myAdaptedOptic [checkLimit,EFL,(IFOV),(FOV),D_aperture,IGFOV_noadapt,swath_noadapt]
+        IGFOV_noadapt(ii) = (pixelSize(1)*1e3*myCollector(ii,2))/myAdaptedOptic(2);
+        swath_noadapt(ii) = 2*1e3*myCollector(ii,2)*tan(myAdaptedOptic(4)/2);
         
         delete([handler_SC,handler_car,handler_link1,handler_link2,handler_link3,handler_target,handler_nadir])
+        
         
     end
     
@@ -315,6 +357,26 @@ for k = 1:length(r_peri_test)
     
     % Plot the deltaV at departure
     plot(handler_axes_6,time_test,myCollector(:,9)*1e3,'b-')
+    
+    % Plot the deltaV at departure
+    plot(handler_axes_7,myCollector(:,3),myCollector(:,9)*1e3,'b-')
+    
+    % Plot IGFOV prifile (Target Pointing)
+    %plot(handler_axes_8,time_test,IGFOV_noadapt,'b-')
+    
+    temp = IGFOV_noadapt;
+    tempLimit = sin(deg2rad(C2T_minAngle));
+    plot(handler_axes_8,time_test,temp,'r:')
+    plot(handler_axes_8,time_test(myCollector(:,4)>=tempLimit),temp(myCollector(:,4)>=tempLimit),'b-')
+    
+    
+    % Plot the Swath profile )Target Poinitng)
+    %plot(handler_axes_9,time_test,swath_noadapt,'b-')
+    
+    temp = swath_noadapt;
+    tempLimit = sin(deg2rad(C2T_minAngle));
+    plot(handler_axes_9,time_test,temp,'r:')
+    plot(handler_axes_9,time_test(myCollector(:,4)>=tempLimit),temp(myCollector(:,4)>=tempLimit),'b-')
     
     fprintf('\n[%d - %d] \n',k,periStep);
     fprintf('Pericenter position is at %.3f km \n', r_peri_test(k));
