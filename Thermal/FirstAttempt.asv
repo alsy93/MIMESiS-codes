@@ -25,7 +25,7 @@ set(0,'defaultAxesFontSize',12);
 %Temperatures needed
 
 Tds = 4;        % T deep space [K]
-Tsc_h = 323;    % T high internal spacecraft [K]
+Tsc_h = 300;    % T high internal spacecraft [K]
 Tsc_c = 273;    % T cold internal spacecraft [K]
 
 
@@ -34,20 +34,20 @@ Tsc_c = 273;    % T cold internal spacecraft [K]
 A_front = 1 * 0.1^2;    %Area in front of the planet 1dm^2 [m^2]
 A_side = 2 * A_front;   %Lateral area: 2U-cubesat considered [m^2]
 
-Gsc = 10;               % Thermal conductiviy [W/m^2K]
+Gsc =10;               % Thermal conductiviy [W/m^2K]
 
 REF = 1;                % Radiative Effective Factor (changes with altitude)     
 
 Qdiss = 29.96;          % Total heat dissipated by electric and cpu [W]
 
 
-alpha_f = 0.14;         % Pag 128 multilayer composition material
-eps_f = 0.6; 
-alpha_l = 0.09;         % Pag 128 multilayer composition material
-eps_l = 0.88;  
+alpha_f =1;% 0.14;      % Pag 128 multilayer composition material
+eps_f = 1;%0.6; 
+alpha_l = 0.87 ;        % Pag 87 tesi
+eps_l =0.81;% 0.88;  
 
-alpha_b = 0.2;          % Pag 128 multilayer composition material
-eps_b = 0.059;          %
+alpha_b =0.87 ;          % Pag 128 multilayer composition material
+eps_b = 0.81;%0.059;          %
 
 % Heat fluxes
 Na = 6.022e23;          % Avogadro number [1/mol]
@@ -66,7 +66,7 @@ L = 3.9e26;             % Luminosity of the Sun [W]
 d = 1.496e11 +1.272e12; % 1AU + Enceladus dinstance to Earth [m]         
 WS = L / (4*pi*d^2);    % Solar flux density reaching Enceladus [W/m^2]
 
-r = 252.1*1e3;      % Maximum altitude  [m]
+r = (252.1+200)*1e3;    % Maximum altitude  [m]
 Wir = 4.7e9 /(4*pi*r^2);% Heat flux radiation from Enceladus [W/m^2]
 %Wir = (WS/4 *(1-a)); % from ESS200A Prof. Jin-Yi Yu 
 
@@ -82,55 +82,90 @@ Qir  = Wir*A_front *eps_b*REF;
 Qirsat = Wsat * A_side *eps_b*REF;
 Qasat = Wsat *A_front *alpha_b*asat*REF;
 
-model = 'FirstAttempt_Enceladus.slx';
-load_system(model)
-sim(model)
-
 %% Earth's hot case
 
 au = 1.496e11;
 WS_e = L /(4*pi*au^2);  % Solar flux density from 1 AU [W/m^2]
-Wir_e = 228;            % Heat frlux rafiation from Earth [W/m^2]
+Wir_e = 228;            % Heat flux radiation from Earth [W/m^2]
 a_e = 0.3;              % Earth's albedo
 
 QS_e = WS_e *A_front * REF;
 Qa_e = WS_e *A_front *alpha_b*a_e*REF;
 Qir_e = Wir_e *A_front *eps_b*REF;
 
-model = 'FirstAttempt_Earth.slx';
+model = 'OneNHotCase.slx';
 load_system(model)
 sim(model)
 
+%% Temperature distribution plot
+Y = [238,343    %PCU
+     273,343    %OBDH Memory
+     233,358    %OBDH Processor
+                % Silicon detector(visible)
+     60,150];   % Indium antimonide detector(infrared)
+figure ('Name','Operational T')
+title('Operational Temperature ranges');
+bar(Y,'stacked')
+ylabel('T [K]');somenames={'mike'; 'steve'; 'alex' };
+set(gca,'yticklabel',somenames) 
+xlabel('PCDU','OBDH Memory','OBDH Processor',...
+       'Silicon Detector')%,'Indium antimonide detector')
+grid on;
+%% Plot hottest situation
 
-%% Plot Enceladus VS Earth hot situation
-
-figure ('Name','Transient of Temperature in Enceladus hot steady state case')
+figure ('Name','Hot case 1SN')
         
+        Tsc_h_vect = Tsc_h*ones(time,1);
+        Tsc_c_vect = Tsc_c*ones(time,1);
+
         legend();hold on
-        plot(Thot_enc ,'LineWidth',2,'DisplayName','T transient for Enceladus hot case')
+        title('Transient of Temperature in 1 node hot steady state case');
+        plot(Tsc_h_vect ,'LineWidth',2,'DisplayName','Highest T admissible')
+        plot(Tsc_c_vect ,'LineWidth',2,'DisplayName','Lowest T admissible')
         plot(Thot_earth ,'LineWidth',2,'DisplayName','T transient for Earth hot case')
+        xlabel('time (s)');ylabel('T [K]');
         grid on; grid minor
 
+%% Evaluate trade-off TCS
 
+
+
+        
+        
 %% Cold case: Qi+QIR-Qd=0
 
+Qi=0.2*Qdiss;
 QS=0;
 Qa=0;
 Qi=2;
 Qasat=0;
+Qirsat=0;
 
 QS_e = 0;
 Qa_e = 0;
 
-model = 'FirstAttempt_Cold.slx';
+model = 'OneNColdCase.slx';
 load_system(model)
 sim(model)
 
 
-figure ('Name','Transient of Temperature in Enceladus hot steady state case')
+figure ('Name','Cold case 1SN')
         
         legend();hold on
-        plot(Tcold_enc ,'LineWidth',2,'DisplayName','T transient for Enceladus hot case')
-        plot(Tcold_earth ,'LineWidth',2,'DisplayName','T transient for Earth hot case')
+        title('Transient of Temperature in Enceladus cold steady state case')
+        plot(Tsc_h_vect ,'LineWidth',2,'DisplayName','Highest T admissible')
+        plot(Tsc_c_vect ,'LineWidth',2,'DisplayName','Lowest T admissible')
+        plot(Tcold_enc ,'LineWidth',2,'DisplayName','T transient for Enceladus cold case')
+        xlabel('time (s)');ylabel('T [K]');
         grid on; grid minor
+        
+%% OneNode choosing TCS procedure
 
+alpha_f =1;% 0.14;      % Pag 128 multilayer composition material
+eps_f = 1;%0.6; 
+
+alpha_l = 0.87 ;        % Pag 87 tesi
+eps_l =0.81;% 0.88;  
+
+alpha_b =0.87 ;          % Pag 128 multilayer composition material
+eps_b = 0.81;%0.059;
