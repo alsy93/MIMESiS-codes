@@ -54,7 +54,7 @@ Na = 6.022e23;          % Avogadro number [1/mol]
 mass_H20 =18.01528*1e-3;% H20 atomic mass [kg/mol]
 n_H20 = 12.2e11;        % Numerical value of number density [1/m^3]
 rho = n_H20*mass_H20/Na;% Enceladus maximum density [kg/m^3] 
-v = 120;                % Maximum velocity reached [m/s]
+v = 90;                % Maximum velocity reached [m/s]
 R = A_side/(2*0.1);     % Mean radius
 Qball = sqrt(rho/R)*v^3;% Peak heating due to Enceladus atmosphere
 
@@ -140,7 +140,6 @@ figure ('Name','Hot case 1SN')
 Qi=0.2*Qdiss;
 QS=0;
 Qa=0;
-Qi=2;
 Qasat=0;
 Qirsat=0;
 
