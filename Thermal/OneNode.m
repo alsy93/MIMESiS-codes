@@ -31,10 +31,10 @@ Y = [238,343    %PCU 290.5
      233,358    %OBDH Processor 295.5
      157,252];  %Average range T of detectors 204.5
  T_sc = mean(Y,[1 4]);
- Tsc_h = T_sc(1,2);
- Tsc_c = T_sc(1,1);
-%Tsc_h  T high internal spacecraft [K]
-%Tsc_c  T cold internal spacecraft [K]
+ 
+ Tsc_h = T_sc(1,2); %Tsc_h  T high internal spacecraft [K]
+ Tsc_c = T_sc(1,1); %Tsc_c  T cold internal spacecraft [K]
+
  
  Ym = mean(Y); T0 = mean(Ym);
  %      253,353    % Silicon detector(visible) 303K average
@@ -136,11 +136,6 @@ figure ('Name','Hot case 1SN')
         xlabel('time (s)');ylabel('T [K]');
         grid on; grid minor
 
-%% Evaluate trade-off TCS
-
-
-
-        
         
 %% Cold case: Qi+QIR-Qd=0
 
