@@ -106,9 +106,9 @@ QS_e3 = WS_e *A_front * REF;
 Qa_e3 = WS_e *A_front *alpha_3*a_e*REF;
 Qir_e3 = Wir_e*A_front *eps_3*REF;
 
-QS_e4 = WS_e *A_front * REF;
-Qa_e4 = WS_e *A_front *alpha_4*a_e*REF;
-Qir_e4 = Wir_e*A_front *eps_4*REF;
+QS_e2 = WS_e *A_side * REF;
+Qa_e2 = WS_e *A_side *alpha_2*a_e*REF;
+Qir_e2 = Wir_e*A_side *eps_2*REF;
 
 
 

@@ -3,14 +3,14 @@
 % First attempt of one single node simulation. Hypotesis of SSC: 
 % Qinternal-Qoutput+Qinput=0
 %--------------------------------------------------------------------------
-% TO DO:
+% DONE:
 % Check power dissipation from cpu and electric unit
 % Check the Saturn magnetosphere heat flux generation
 % Check the REF
 % Check alpha and eps
 % Check IR radiation from Enceladus and Saturn
 % Check the flux exchange due to the atmosphere: DeltaT = 30K
-% Check 
+% Last version: 21/05/2019
 
 clear all; clc; close all
 time = 7200;
@@ -41,7 +41,7 @@ Y = [238,343    %PCU 290.5
 %      60,150];   % Indium antimonide detector(infrared) 105K average
 figure ('Name','Operational T')
 title('Operational Temperature ranges');
-b=bar(Y,'stacked','BaseValue',T0);bl = b.BaseLine;c1 = bl.Color;
+b=bar(Y,'BaseValue',T0);bl = b.BaseLine;c1 = bl.Color;
 bl.Color = 'blue';
 ylabel('T [K]');somenames={'PCDU';'OBDH Memory';'OBDH Processor';...
        'Detector'};%;'Indium antimonide detector'};
@@ -103,7 +103,7 @@ Qa = WS *A_front *alpha_b*a*REF;
 Qir  = Wir*A_front *eps_b*REF;
 
 Qirsat = Wsat * A_side *eps_b*REF;
-Qasat = Wsat *A_side *alpha_b*asat*REF;
+Qasat = WS *A_side *alpha_b*asat*REF;
 
 %% Earth's hot case
 
