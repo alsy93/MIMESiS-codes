@@ -67,11 +67,14 @@ IGFOV =30; %[m]
 swath = 8000;% %[m]
 fNumber = 1.4;
 
+n_visibleSpectralPixel = 1;
+n_infraredSpectralPixel = 6;
+
 % Spectral Channel Central Frequency 
-lambda_c = [[485.5,532.5,685].*1e-3,1.04,1.25,1.5,2,4.6].*1e-6; %[m]
+lambda_c = [[485.5,532.5,685].*1e-3,1.04,1.25,1.5,1.65,2,4.6].*1e-6; %[m]
 
 % Spectral Channel Width
-lambda_delta = [[9.5,37.5,65].*1e-3,0.01,0.02,0.1,0.3,0.005].*1e-6; %[m]
+lambda_delta = [[9.5,37.5,65].*1e-3,0.01,0.02,0.1,0.01,0.3,0.005].*1e-6; %[m]
 
 %% SENSOR SIZE
 % Number of pixel along the spatial dimension
@@ -80,8 +83,8 @@ n_pixel_space = swath/IGFOV;
 sensor_size_space = pixel_size_space*n_pixel_space;
 % Sensor spectral dimension
 % Pushbrum Scanning
-n_pixel_spectral = 1;
-sensor_size_spectral = pixel_size_spectral*n_pixel_spectral;
+sensor_size_spectral.visible = pixel_size_spectral*n_visibleSpectralPixel;
+sensor_size_spectral.infrared = pixel_size_spectral*n_infraredSpectralPixel;
 
 %% Scene Parameter
 % Field of View given the swath
@@ -96,10 +99,16 @@ IFOV = 2*atan2(IGFOV/2,h);
 % Aperure size
 D_aperture = EFL/fNumber;
 
+% Depth of Focus
+% Admissible variation of the detector relative to the nominal focal plane
+% position
+DOF = 2*(pixel_size_spectral)*fNumber;
+
 %% Behavior at different altitude
 h_lowest = 500; %[m]
 IGFOV_noadapt = (pixel_size_space*h_lowest)/EFL;
 swath_noadapt = 2*h_lowest*tan(FOV/2);
+FOV_adapted = 2*atan2(swath/2,h_lowest);
 
 %% Frequency of interest
 
@@ -116,10 +125,12 @@ plot(handler_axes_1,1e6.*lambda_c',D_aperture.*ones(length(lambda_c),1),'--','Di
 
 fprintf('Optical System Adapted at %.0f km of altitude \n\n',h);
 fprintf('EFL: %.3f mm \n', EFL*1e3);
-fprintf('FOV: %.3e ° \n', FOV);
-fprintf('IFOV: %.3e ° \n', IFOV);
+fprintf('DOF: %.3f mm \n', DOF*1e3);
+fprintf('FOV: %.3e rad \n', FOV);
+fprintf('IFOV: %.3e rad \n', IFOV);
 fprintf('Aperture Diameter: %.3f mm \n\n', D_aperture*1e3);
 
 fprintf('Optical System Performance at %.0f km of altitude \n\n',h_lowest);
 fprintf('IGFOV: %.3e m \n', IGFOV_noadapt);
 fprintf('SWATH: %.3e m \n', swath_noadapt);
+fprintf('FOV for constant SWATH: %.3e rad\n',FOV_adapted);
